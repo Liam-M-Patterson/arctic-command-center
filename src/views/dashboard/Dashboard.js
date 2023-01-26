@@ -1,4 +1,4 @@
-import React from 'react'
+import { React, useState, useEffect } from 'react'
 
 import {
   CAvatar,
@@ -54,7 +54,33 @@ import avatar6 from 'src/assets/images/avatars/6.jpg'
 import WidgetsBrand from '../widgets/WidgetsBrand'
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
 
+import store from '../../store'
+
+function clickMe() {
+  console.log('YOU CLICKED!')
+}
+
 const Dashboard = () => {
+  const [title, setTitle] = useState([])
+
+  const apiUrl = store.getState().apiUrl
+  const backendUrl = store.getState().backendUrl
+
+  useEffect(() => {
+    fetch(backendUrl)
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json()
+        }
+      })
+      .catch(() => {
+        return { title: 'Could not connect to the backend service.' }
+      })
+      .then((data) => {
+        setTitle(data.title)
+      })
+  }, [])
+
   const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
 
   const progressExample = [
@@ -180,6 +206,7 @@ const Dashboard = () => {
 
   return (
     <>
+      <h1>{title}</h1>
       <WidgetsDropdown />
       <CCard className="mb-4">
         <CCardBody>
