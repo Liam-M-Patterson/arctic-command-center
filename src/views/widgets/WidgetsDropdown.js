@@ -1,4 +1,4 @@
-import React from 'react'
+import { React, useState, useEffect } from 'react'
 import {
   CRow,
   CCol,
@@ -7,24 +7,128 @@ import {
   CDropdownItem,
   CDropdownToggle,
   CWidgetStatsA,
+  CButton,
 } from '@coreui/react'
 import { getStyle } from '@coreui/utils'
 import { CChartBar, CChartLine } from '@coreui/react-chartjs'
 import CIcon from '@coreui/icons-react'
-import { cilArrowBottom, cilArrowTop, cilOptions } from '@coreui/icons'
+import { cilArrowBottom, cilArrowTop, cilOptions, cilSun, cilStream, cilCloud, cilBattery3 } from '@coreui/icons'
+
+import store from '../../store'
+import { useSensorStatus }  from '../../hooks/sensorStatus'
 
 const WidgetsDropdown = () => {
+  const apiUrl = store.getState().apiUrl
+
+  // const widgetData = {
+  //   data: {
+  //     labels: [],
+  //     datasets: [
+  //       {
+  //         label: '',
+  //         backgroundColor: 'rgba(255,255,255,.2)',
+  //         borderColor: 'rgba(255,255,255,.55)',
+  //         data: [],
+  //         fill: true,
+  //       },
+  //     ],
+  //   },
+  // }
+
+  
+  const [windWidgetState, setWindWidgetState] = useState(0)
+  const [windWidget, setWindWidget] = useSensorStatus({sensor: 'wind', state: windWidgetState })
+
+  const [solarWidgetState, setSolarWidgetState] = useState(0)
+  const [solarWidget, setSolarWidget] = useSensorStatus({sensor: 'solar', state: solarWidgetState })
+  
+  const [batteryWidgetState, setBatteryWidgetState] = useState(0)
+  const [batteryWidget, setBatteryWidget] = useSensorStatus({sensor: 'battery', state: batteryWidgetState })
+  
+
+  // const setSensorStatus = (responseData) => {
+  //   var widget = {}
+  //   widget.title = responseData.title
+  //   widget.direction = responseData.direction === 'top' ? cilArrowTop : cilArrowBottom
+  //   widget.data = {
+  //     labels: responseData.labels,
+  //     datasets: [
+  //       {
+  //         label: responseData.label,
+  //         backgroundColor: responseData.backgroundColor,
+  //         borderColor: responseData.borderColor,
+  //         data: responseData.dataPoints,
+  //         fill: true,
+  //         pointBackgroundColor: getStyle('--cui-info'),
+  //       },
+  //     ],
+  //   }
+  //   return widget
+  // }
+
+  // useEffect(() => {
+  //   console.log('solar widget state updated')
+  // }, [solarWidgetState])
+
+  // Refresh solar status
+  // useEffect(() => {
+  //   fetch(apiUrl + '/status/solar')
+  //     .then((response) => {
+  //       if (response.status === 200) {
+  //         return response.json()
+  //       }
+  //     })
+  //     // .catch(() => {
+  //     //   return widgetData
+  //     // })
+  //     .then((responseData) => {
+  //       responseData.backgroundColor = 'rgba(255,255,255,.5)'
+  //       responseData.backgroundColor = 'rgba(255,255,255,.7)'
+  //       responseData.label = 'UV Index'
+  //       var widget = setSensorStatus(responseData)
+  //       setSolarWidget(widget)
+  //     })
+  // }, [])
+
+  // useEffect(() => {
+  //   fetch(apiUrl + '/status/wind')
+  //     .then((response) => {
+  //       if (response.status === 200) {
+  //         return response.json()
+  //       }
+  //     })
+  //     // .catch(() => {
+  //     //   return widgetData
+  //     // })
+  //     .then((responseData) => {
+  //       responseData.backgroundColor = 'rgba(255,255,255,.2)'
+  //       responseData.backgroundColor = 'rgba(255,255,255,.55)'
+  //       responseData.label = 'km/h'
+  //       var widget = setSensorStatus(responseData)
+  //       setWindWidget(widget)
+  //     })
+  // }, [])
+
+  // function otherRefresh() {
+  //   console.log('refreshing from within the component')
+  //   console.log('solar state', solarWidgetState)
+  //   setSolarWidgetState(solarWidgetState+1)
+  // }
+
   return (
     <CRow>
       <CCol sm={6} lg={3}>
         <CWidgetStatsA
           className="mb-4"
-          color="primary"
+          color="warning"
           value={
             <>
-              26K{' '}
+              {solarWidget.title}{' '}
               <span className="fs-6 fw-normal">
-                (-12.4% <CIcon icon={cilArrowBottom} />)
+                <CIcon icon={cilSun} />
+              </span>{' '}
+              <span className="fs-6 fw-normal">
+                (<CIcon icon={solarWidget.direction} />)
               </span>
             </>
           }
@@ -35,8 +139,7 @@ const WidgetsDropdown = () => {
                 <CIcon icon={cilOptions} className="text-high-emphasis-inverse" />
               </CDropdownToggle>
               <CDropdownMenu>
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
+                <CDropdownItem onClick={() => {setSolarWidgetState(solarWidgetState+1)}}>Refresh</CDropdownItem>
                 <CDropdownItem>Something else here...</CDropdownItem>
                 <CDropdownItem disabled>Disabled action</CDropdownItem>
               </CDropdownMenu>
@@ -46,18 +149,7 @@ const WidgetsDropdown = () => {
             <CChartLine
               className="mt-3 mx-3"
               style={{ height: '70px' }}
-              data={{
-                labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-                datasets: [
-                  {
-                    label: 'My First dataset',
-                    backgroundColor: 'transparent',
-                    borderColor: 'rgba(255,255,255,.55)',
-                    pointBackgroundColor: getStyle('--cui-primary'),
-                    data: [65, 59, 84, 84, 51, 55, 40],
-                  },
-                ],
-              }}
+              data={solarWidget.data}
               options={{
                 plugins: {
                   legend: {
@@ -76,8 +168,8 @@ const WidgetsDropdown = () => {
                     },
                   },
                   y: {
-                    min: 30,
-                    max: 89,
+                    // min: 30,
+                    // max: 89,
                     display: false,
                     grid: {
                       display: false,
@@ -106,23 +198,29 @@ const WidgetsDropdown = () => {
       <CCol sm={6} lg={3}>
         <CWidgetStatsA
           className="mb-4"
-          color="info"
+          color="primary"
           value={
             <>
-              $6.200{' '}
+              {windWidget?.title}{' '}
               <span className="fs-6 fw-normal">
-                (40.9% <CIcon icon={cilArrowTop} />)
+                <CIcon icon={cilCloud} />
+              </span>
+              <span className="fs-6 fw-normal">
+                <CIcon icon={cilStream} />
+              </span>{' '}
+              <span className="fs-6 fw-normal">
+                (<CIcon icon={windWidget.direction} />)
               </span>
             </>
           }
-          title="Income"
+          title="Iqualit"
           action={
             <CDropdown alignment="end">
               <CDropdownToggle color="transparent" caret={false} className="p-0">
                 <CIcon icon={cilOptions} className="text-high-emphasis-inverse" />
               </CDropdownToggle>
               <CDropdownMenu>
-                <CDropdownItem>Action</CDropdownItem>
+                <CDropdownItem onClick={() => {setWindWidgetState(windWidgetState+1)}}>Refresh</CDropdownItem>
                 <CDropdownItem>Another action</CDropdownItem>
                 <CDropdownItem>Something else here...</CDropdownItem>
                 <CDropdownItem disabled>Disabled action</CDropdownItem>
@@ -133,18 +231,7 @@ const WidgetsDropdown = () => {
             <CChartLine
               className="mt-3 mx-3"
               style={{ height: '70px' }}
-              data={{
-                labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-                datasets: [
-                  {
-                    label: 'My First dataset',
-                    backgroundColor: 'transparent',
-                    borderColor: 'rgba(255,255,255,.55)',
-                    pointBackgroundColor: getStyle('--cui-info'),
-                    data: [1, 18, 9, 17, 34, 22, 11],
-                  },
-                ],
-              }}
+              data={windWidget.data}
               options={{
                 plugins: {
                   legend: {
@@ -163,8 +250,8 @@ const WidgetsDropdown = () => {
                     },
                   },
                   y: {
-                    min: -9,
-                    max: 39,
+                    // min: 30,
+                    // max: 89,
                     display: false,
                     grid: {
                       display: false,
@@ -177,6 +264,7 @@ const WidgetsDropdown = () => {
                 elements: {
                   line: {
                     borderWidth: 1,
+                    tension: 0.4,
                   },
                   point: {
                     radius: 4,
@@ -195,10 +283,13 @@ const WidgetsDropdown = () => {
           color="warning"
           value={
             <>
-              2.49{' '}
+              {batteryWidget?.title}{' '}
               <span className="fs-6 fw-normal">
-                (84.7% <CIcon icon={cilArrowTop} />)
+                <CIcon icon={cilBattery3} />
               </span>
+              {/* <span className="fs-6 fw-normal">
+                (<CIcon icon={batteryWidget.direction} />)
+              </span> */}
             </>
           }
           title="Conversion Rate"
@@ -208,7 +299,7 @@ const WidgetsDropdown = () => {
                 <CIcon icon={cilOptions} className="text-high-emphasis-inverse" />
               </CDropdownToggle>
               <CDropdownMenu>
-                <CDropdownItem>Action</CDropdownItem>
+                <CDropdownItem onClick={() => {setBatteryWidgetState(batteryWidgetState+1)}}>Refresh</CDropdownItem>
                 <CDropdownItem>Another action</CDropdownItem>
                 <CDropdownItem>Something else here...</CDropdownItem>
                 <CDropdownItem disabled>Disabled action</CDropdownItem>
@@ -219,18 +310,7 @@ const WidgetsDropdown = () => {
             <CChartLine
               className="mt-3"
               style={{ height: '70px' }}
-              data={{
-                labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-                datasets: [
-                  {
-                    label: 'My First dataset',
-                    backgroundColor: 'rgba(255,255,255,.2)',
-                    borderColor: 'rgba(255,255,255,.55)',
-                    data: [78, 81, 80, 45, 34, 12, 40],
-                    fill: true,
-                  },
-                ],
-              }}
+              data={batteryWidget?.data}
               options={{
                 plugins: {
                   legend: {
