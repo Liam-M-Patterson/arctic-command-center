@@ -19,23 +19,7 @@ import { useSensorStatus }  from '../../hooks/sensorStatus'
 
 const WidgetsDropdown = () => {
   const apiUrl = store.getState().apiUrl
-
-  // const widgetData = {
-  //   data: {
-  //     labels: [],
-  //     datasets: [
-  //       {
-  //         label: '',
-  //         backgroundColor: 'rgba(255,255,255,.2)',
-  //         borderColor: 'rgba(255,255,255,.55)',
-  //         data: [],
-  //         fill: true,
-  //       },
-  //     ],
-  //   },
-  // }
-
-  
+    
   const [windWidgetState, setWindWidgetState] = useState(0)
   const [windWidget, setWindWidget] = useSensorStatus({sensor: 'wind', state: windWidgetState })
 
@@ -45,76 +29,6 @@ const WidgetsDropdown = () => {
   const [batteryWidgetState, setBatteryWidgetState] = useState(0)
   const [batteryWidget, setBatteryWidget] = useSensorStatus({sensor: 'battery', state: batteryWidgetState })
   
-
-  // const setSensorStatus = (responseData) => {
-  //   var widget = {}
-  //   widget.title = responseData.title
-  //   widget.direction = responseData.direction === 'top' ? cilArrowTop : cilArrowBottom
-  //   widget.data = {
-  //     labels: responseData.labels,
-  //     datasets: [
-  //       {
-  //         label: responseData.label,
-  //         backgroundColor: responseData.backgroundColor,
-  //         borderColor: responseData.borderColor,
-  //         data: responseData.dataPoints,
-  //         fill: true,
-  //         pointBackgroundColor: getStyle('--cui-info'),
-  //       },
-  //     ],
-  //   }
-  //   return widget
-  // }
-
-  // useEffect(() => {
-  //   console.log('solar widget state updated')
-  // }, [solarWidgetState])
-
-  // Refresh solar status
-  // useEffect(() => {
-  //   fetch(apiUrl + '/status/solar')
-  //     .then((response) => {
-  //       if (response.status === 200) {
-  //         return response.json()
-  //       }
-  //     })
-  //     // .catch(() => {
-  //     //   return widgetData
-  //     // })
-  //     .then((responseData) => {
-  //       responseData.backgroundColor = 'rgba(255,255,255,.5)'
-  //       responseData.backgroundColor = 'rgba(255,255,255,.7)'
-  //       responseData.label = 'UV Index'
-  //       var widget = setSensorStatus(responseData)
-  //       setSolarWidget(widget)
-  //     })
-  // }, [])
-
-  // useEffect(() => {
-  //   fetch(apiUrl + '/status/wind')
-  //     .then((response) => {
-  //       if (response.status === 200) {
-  //         return response.json()
-  //       }
-  //     })
-  //     // .catch(() => {
-  //     //   return widgetData
-  //     // })
-  //     .then((responseData) => {
-  //       responseData.backgroundColor = 'rgba(255,255,255,.2)'
-  //       responseData.backgroundColor = 'rgba(255,255,255,.55)'
-  //       responseData.label = 'km/h'
-  //       var widget = setSensorStatus(responseData)
-  //       setWindWidget(widget)
-  //     })
-  // }, [])
-
-  // function otherRefresh() {
-  //   console.log('refreshing from within the component')
-  //   console.log('solar state', solarWidgetState)
-  //   setSolarWidgetState(solarWidgetState+1)
-  // }
-
   return (
     <CRow>
       <CCol sm={6} lg={3}>
