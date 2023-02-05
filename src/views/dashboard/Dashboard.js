@@ -17,6 +17,11 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CFormRange,
+  CInputGroup,
+  CInputGroupText,
+  CFormInput,
+  CSpinner,
 } from '@coreui/react'
 import { CChartLine } from '@coreui/react-chartjs'
 import { getStyle, hexToRgba } from '@coreui/utils'
@@ -53,35 +58,53 @@ import avatar6 from 'src/assets/images/avatars/6.jpg'
 
 import WidgetsBrand from '../widgets/WidgetsBrand'
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
+import { useSensorStatus }  from '../../hooks/sensorStatus'
 
 import store from '../../store'
 
-function clickMe() {
-  console.log('YOU CLICKED!')
-}
+// Imports from the charts library
+import {
+  Charts,
+  ChartContainer,
+  ChartRow,
+  YAxis,
+  LineChart,
+  ScatterChart,
+  AreaChart, 
+  Resizable, 
+  styler, 
+  Legend,
+} from "react-timeseries-charts";
+
+import { TimeSeries, TimeRange } from "pondjs";
+import _ from "underscore";
+import StackedChart  from './StackedChart';
 
 const Dashboard = () => {
   const [title, setTitle] = useState([])
 
-  const apiUrl = store.getState().apiUrl
-  const backendUrl = store.getState().backendUrl
+  const apiUrl = store.getState().apiUrl;
+  const backendUrl = store.getState().backendUrl;
+  const GCLOUD_URL = store.getState().GCLOUD_URL;
 
   useEffect(() => {
     fetch(backendUrl)
       .then((response) => {
         if (response.status === 200) {
-          return response.json()
+          return response.json();
         }
       })
       .catch(() => {
-        return { title: 'Could not connect to the backend service.' }
+        return { title: 'Could not connect to the backend service.' };
       })
       .then((data) => {
-        setTitle(data.title)
+        setTitle(data.title);
       })
-  }, [])
+  }, []);
 
   const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
+
+
 
   const progressExample = [
     { title: 'Visits', value: '29.703 Users', percent: 40, color: 'success' },
@@ -204,10 +227,201 @@ const Dashboard = () => {
     },
   ]
 
+  const data = {
+    name: "traffic",
+    columns: ["time", "value"],
+    points: [
+        [1400425947000, .52],
+        [1400425948000, .18],
+        [1400425949000, .26],
+        [1400425950000, .93],
+    ]
+  }
+  const series1 = new TimeSeries(data);
+
+  // MY stuff
+  const [img, setImg] = useState();
+  const [detectImg, setDetectImg] = useState();
+
+  const [imgSpinner, setImgSpinner] = useState(false);
+  const [imgDetectSpinner, setImgDetectSpinner] = useState(false);
+ 
+  const fetchImage = async () => {
+    const res = await fetch(apiUrl+'/img')
+    const imageBlob = await res.blob();
+    const imageObjectURL = URL.createObjectURL(imageBlob);
+    setImg(imageObjectURL);
+  };
+
+  useEffect(() => {
+    fetchImage();
+  }, []);
+
+  function makeImageUrl(data) {
+
+    const imageData = atob(data);
+    const byteArray = new Uint8Array(imageData.length);
+    for (let i = 0; i < imageData.length; i ++) {
+      byteArray[i] = imageData.charCodeAt(i);
+    }
+
+    const imageBlob = new Blob([byteArray, {type: 'image/png'}]);
+    const imageObjectURL = URL.createObjectURL(imageBlob);
+    return imageObjectURL;
+  }
+
+  const takeNewImage = async () => {
+
+    setImgSpinner(true);
+    setImgDetectSpinner(true);
+
+    var endpoint = apiUrl.match('localhost') ? '/get/img' : '/take/img';
+    const url = apiUrl+endpoint;
+
+    const filename = await fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const filename = data.filename;
+
+        const imageObjectURL = makeImageUrl(data.image);
+        setImg(imageObjectURL);
+        setImgSpinner(false);
+        return filename;
+      });
+    
+
+    const detectUrl = apiUrl+'/detect/img';
+
+    const detectRes = await fetch(detectUrl, {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({filename: filename})
+    });
+
+    const detectImgBlob = await detectRes.blob();
+    const detectImgURL = URL.createObjectURL(detectImgBlob);
+    setDetectImg(detectImgURL);
+    setImgDetectSpinner(false);
+  } 
+
+
+  const [ledWidgetState, setledWidgetState] = useState(0)
+  const [ledWidget, setledWidget] = useSensorStatus({sensor: 'ledTime', state: ledWidgetState })
+  // setTimeout(() => setledWidgetState(ledWidgetState+1), 10000)
+  
+
+  const [led_ON_MS, setLED_ON_MS] = useState(5000);
+  const [led_OFF_MS, setLED_OFF_MS] = useState(5000);
+
+
+  const updateLedFreq = async(data) => {
+    var msg = data.ON ? 'H' : 'L';
+    msg += data.ms;
+
+    console.log('updating ', msg)
+
+    const res = await fetch(apiUrl+'/update/led?message='+msg);
+
+  };
+
   return (
     <>
-      <h1>{title}</h1>
+
+      <div className='d-flex justify-content-center'>
+        <h1>{title}</h1>
+      </div>
+    
       <WidgetsDropdown />
+
+      <CRow>
+        <div className='d-flex justify-content-center'>
+          <h1> Intrusion Detection </h1>
+        </div>
+
+        <CCol>
+          <div className='d-flex justify-content-center'>
+            <h3> Latest Image </h3>
+          </div>
+          <div className='d-flex justify-content-center'>
+            
+            { imgSpinner ? 
+              <> 
+                <CSpinner /> <p> Taking Picture</p>
+              </> 
+              :
+                <img src={img} alt="No Image" style={{maxWidth:'100%', maxHeight:'100%'}}/>
+            } 
+          </div>
+        </CCol>
+
+        <CCol>
+          <div className='d-flex justify-content-center'>
+            <h3> Detected Image </h3>
+          </div>
+          <div className='d-flex justify-content-center'>
+
+            { imgDetectSpinner ? 
+              <> 
+                <CSpinner /> <p> Detecting Intrusion</p>
+              </> 
+              :
+              <img src={detectImg} alt="No Image" style={{maxWidth:'100%', maxHeight:'100%'}} />
+            }
+          </div>
+        </CCol>
+      </CRow>
+
+      <CRow className='my-2'>        
+        <CCol>
+          <div className='d-flex justify-content-center'>
+            <CButton onClick={takeNewImage}>Capture New Image</CButton>
+          </div>
+          <CRow className='my-5'>
+            <CRow>
+              <CInputGroup className="mb-3">
+                <CInputGroupText id="basic-addon1">LED ON</CInputGroupText>
+                <CFormInput defaultValue={led_ON_MS} onChange={(e) => {setLED_ON_MS( e.target.value) }}/>
+                <CInputGroupText id="basic-addon1">ms</CInputGroupText>
+                <CButton onClick={() => {updateLedFreq({ms: led_ON_MS, ON: true})}}>Update</CButton>
+              </CInputGroup>
+            </CRow>
+
+            <CRow>
+              <CInputGroup className="mb-3">
+                <CInputGroupText id="basic-addon1">LED OFF</CInputGroupText>
+                <CFormInput defaultValue={led_OFF_MS} onChange={(e) => {setLED_OFF_MS( e.target.value )}}/> 
+                <CInputGroupText id="basic-addon1">ms</CInputGroupText>
+                <CButton onClick={() => {updateLedFreq({ms: led_OFF_MS, ON: false})}}>Update</CButton>
+              </CInputGroup>
+            </CRow>
+          </CRow>
+        </CCol>
+      </CRow>
+
+
+
+      <CRow className='my-5 d-none'>
+        <ChartContainer timeRange={series1.timerange()} width={800}>
+            <ChartRow height="200">
+                <YAxis id="axis1" label="AUD"  width="60" type="linear" />
+                <Charts>
+                    <LineChart axis="axis1" series={series1}/>
+                    {/* <LineChart axis="axis2" series={series2}/> */}
+                </Charts>
+                {/* <YAxis id="axis2" label="Euro" width="80" type="linear" format="$,.2f"/> */}
+            </ChartRow>
+        </ChartContainer>
+      </CRow>
+
+     
+      <CRow>
+        <StackedChart/>
+      </CRow>
+      
       <CCard className="mb-4">
         <CCardBody>
           <CRow>
@@ -237,53 +451,54 @@ const Dashboard = () => {
           </CRow>
           <CChartLine
             style={{ height: '300px', marginTop: '40px' }}
-            data={{
-              labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-              datasets: [
-                {
-                  label: 'My First dataset',
-                  backgroundColor: hexToRgba(getStyle('--cui-info'), 10),
-                  borderColor: getStyle('--cui-info'),
-                  pointHoverBackgroundColor: getStyle('--cui-info'),
-                  borderWidth: 2,
-                  data: [
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                  ],
-                  fill: true,
-                },
-                {
-                  label: 'My Second dataset',
-                  backgroundColor: 'transparent',
-                  borderColor: getStyle('--cui-success'),
-                  pointHoverBackgroundColor: getStyle('--cui-success'),
-                  borderWidth: 2,
-                  data: [
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                    random(50, 200),
-                  ],
-                },
-                {
-                  label: 'My Third dataset',
-                  backgroundColor: 'transparent',
-                  borderColor: getStyle('--cui-danger'),
-                  pointHoverBackgroundColor: getStyle('--cui-danger'),
-                  borderWidth: 1,
-                  borderDash: [8, 5],
-                  data: [65, 65, 65, 65, 65, 65, 65],
-                },
-              ],
-            }}
+            data={ledWidget?.data}
+            // data={{
+            //   labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+            //   datasets: [
+            //     {
+            //       label: 'My First dataset',
+            //       backgroundColor: hexToRgba(getStyle('--cui-info'), 10),
+            //       borderColor: getStyle('--cui-info'),
+            //       pointHoverBackgroundColor: getStyle('--cui-info'),
+            //       borderWidth: 2,
+            //       data: [
+            //         random(50, 200),
+            //         random(50, 200),
+            //         random(50, 200),
+            //         random(50, 200),
+            //         random(50, 200),
+            //         random(50, 200),
+            //         random(50, 200),
+            //       ],
+            //       fill: true,
+            //     },
+            //     {
+            //       label: 'My Second dataset',
+            //       backgroundColor: 'transparent',
+            //       borderColor: getStyle('--cui-success'),
+            //       pointHoverBackgroundColor: getStyle('--cui-success'),
+            //       borderWidth: 2,
+            //       data: [
+            //         random(50, 200),
+            //         random(50, 200),
+            //         random(50, 200),
+            //         random(50, 200),
+            //         random(50, 200),
+            //         random(50, 200),
+            //         random(50, 200),
+            //       ],
+            //     },
+            //     {
+            //       label: 'My Third dataset',
+            //       backgroundColor: 'transparent',
+            //       borderColor: getStyle('--cui-danger'),
+            //       pointHoverBackgroundColor: getStyle('--cui-danger'),
+            //       borderWidth: 1,
+            //       borderDash: [8, 5],
+            //       data: [65, 65, 65, 65, 65, 65, 65],
+            //     },
+            //   ],
+            // }}
             options={{
               maintainAspectRatio: false,
               plugins: {

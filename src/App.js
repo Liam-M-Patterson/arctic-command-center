@@ -19,12 +19,14 @@ const Page404 = React.lazy(() => import('./views/pages/page404/Page404'))
 const Page500 = React.lazy(() => import('./views/pages/page500/Page500'))
 
 // SET to true if running flask on localhost. set to false if using localhost.run to port tunnel
-const localhost = true
+const localhost = false
 const backendUrl = localhost ? 'http://localhost:5000' : 'http://arctic.lhr.rocks'
 const apiUrl = backendUrl + '/api'
+const GCLOUD_URL = 'http://34.95.57.130:5000';
 
 store.dispatch({ type: 'set', backendUrl })
 store.dispatch({ type: 'set', apiUrl })
+store.dispatch({ type: 'set', GCLOUD_URL })
 
 class App extends Component {
   render() {

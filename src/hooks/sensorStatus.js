@@ -58,7 +58,7 @@ export const useSensorStatus = (props) => {
       .then((responseData) => {
         responseData.backgroundColor = 'rgba(255,255,255,.5)'
         responseData.backgroundColor = 'rgba(255,255,255,.7)'
-        responseData.label = 'UV Index'
+        responseData.label = responseData.tooltipLabel
         
         setStatus(setSensorStatus(responseData))
       })
