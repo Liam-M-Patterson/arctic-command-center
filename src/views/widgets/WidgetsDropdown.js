@@ -19,7 +19,7 @@ import { useSensorStatus }  from '../../hooks/sensorStatus'
 
 const WidgetsDropdown = () => {
   const apiUrl = store.getState().apiUrl
-    
+
   const [windWidgetState, setWindWidgetState] = useState(0)
   const [windWidget, setWindWidget] = useSensorStatus({sensor: 'wind', state: windWidgetState })
 
@@ -29,6 +29,11 @@ const WidgetsDropdown = () => {
   const [batteryWidgetState, setBatteryWidgetState] = useState(0)
   const [batteryWidget, setBatteryWidget] = useSensorStatus({sensor: 'battery', state: batteryWidgetState })
   
+
+  const [ledWidgetState, setledWidgetState] = useState(0)
+  const [ledWidget, setledWidget] = useSensorStatus({sensor: 'led', state: ledWidgetState })
+  // setTimeout(() => setledWidgetState(ledWidgetState+1), 10000)
+
   return (
     <CRow>
       <CCol sm={6} lg={3}>
@@ -262,9 +267,9 @@ const WidgetsDropdown = () => {
           color="danger"
           value={
             <>
-              44K{' '}
+               {ledWidget?.title}{' '}
               <span className="fs-6 fw-normal">
-                (-23.6% <CIcon icon={cilArrowBottom} />)
+                (<CIcon icon={ledWidget.direction} />)
               </span>
             </>
           }
@@ -286,35 +291,7 @@ const WidgetsDropdown = () => {
             <CChartBar
               className="mt-3 mx-3"
               style={{ height: '70px' }}
-              data={{
-                labels: [
-                  'January',
-                  'February',
-                  'March',
-                  'April',
-                  'May',
-                  'June',
-                  'July',
-                  'August',
-                  'September',
-                  'October',
-                  'November',
-                  'December',
-                  'January',
-                  'February',
-                  'March',
-                  'April',
-                ],
-                datasets: [
-                  {
-                    label: 'My First dataset',
-                    backgroundColor: 'rgba(255,255,255,.2)',
-                    borderColor: 'rgba(255,255,255,.55)',
-                    data: [78, 81, 80, 45, 34, 12, 40, 85, 65, 23, 12, 98, 34, 84, 67, 82],
-                    barPercentage: 0.6,
-                  },
-                ],
-              }}
+              data={ledWidget?.data}
               options={{
                 maintainAspectRatio: false,
                 plugins: {
