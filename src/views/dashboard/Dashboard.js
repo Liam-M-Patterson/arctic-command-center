@@ -79,6 +79,9 @@ import {
 import { TimeSeries, TimeRange } from "pondjs";
 import _ from "underscore";
 import StackedChart  from './StackedChart';
+import Radar from './Radar';
+
+
 
 const Dashboard = () => {
   const [title, setTitle] = useState([])
@@ -276,6 +279,7 @@ const Dashboard = () => {
     setImgDetectSpinner(true);
 
     var endpoint = apiUrl.match('localhost') ? '/get/img' : '/take/img';
+    // var endpoint = '/take/img';
     const url = apiUrl+endpoint;
 
     const filename = await fetch(url)
@@ -327,6 +331,30 @@ const Dashboard = () => {
     const res = await fetch(apiUrl+'/update/led?message='+msg);
 
   };
+
+  const sketch = (p) => {
+    p.setup = () => {
+    p.createCanvas(400, 400);
+    };
+
+    p.draw = () => {
+    p.background(255, 255, 255);
+    p.fill(0, 0, 0);
+    p.ellipse(200, 200, 100, 100);
+    };
+  };
+
+  // RADAR Vars
+  const [iAngle, setIAngle] = useState(0);
+  const [iDistance, setIDistance] = useState(0);
+  const [radarDir, setRadarDir] = useState(1);
+  setTimeout(() => {
+    if (iAngle == 180) setRadarDir(-1)
+    else if (iAngle == 0) setRadarDir(1)
+      
+    setIAngle(iAngle+radarDir);
+    // setIDistance(random(0, 180));
+  }, 100);
 
   return (
     <>
@@ -380,7 +408,7 @@ const Dashboard = () => {
           <div className='d-flex justify-content-center'>
             <CButton onClick={takeNewImage}>Capture New Image</CButton>
           </div>
-          <CRow className='my-5'>
+          {/* <CRow className='my-5'>
             <CRow>
               <CInputGroup className="mb-3">
                 <CInputGroupText id="basic-addon1">LED ON</CInputGroupText>
@@ -398,10 +426,19 @@ const Dashboard = () => {
                 <CButton onClick={() => {updateLedFreq({ms: led_OFF_MS, ON: false})}}>Update</CButton>
               </CInputGroup>
             </CRow>
-          </CRow>
+          </CRow> */}
         </CCol>
       </CRow>
+      
+      {/* <CRow > */}
+        <div id="canvasWrapper" className='d-flex justify-content-center' 
+          // style={{maxWidth:'100%', height: 500}}
+        >
+          <Radar  iAngle={iAngle} iDistance={iDistance}>
 
+          </Radar>  
+        </div>
+      {/* </CRow> */}
 
 
       <CRow className='my-5 d-none'>
