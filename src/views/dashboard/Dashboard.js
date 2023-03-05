@@ -83,12 +83,14 @@ import Radar from './Radar';
 
 
 
+
 const Dashboard = () => {
   const [title, setTitle] = useState([])
 
   const apiUrl = store.getState().apiUrl;
   const backendUrl = store.getState().backendUrl;
   const GCLOUD_URL = store.getState().GCLOUD_URL;
+  const socket = store.getState().socket;
 
   useEffect(() => {
     fetch(backendUrl)
@@ -107,8 +109,23 @@ const Dashboard = () => {
 
   const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
 
+  const [message, setMessage] = useState('');
 
+  useEffect(() => {
+    socket.on('connect', () => {
+      socket.emit('connected');
+    });
+  }, []);
 
+  useEffect(() => {
+    
+    socket.on('message', data => {
+      console.log('got message', data);
+      setMessage(data);
+      // socket.emit('liam');
+    });
+  }, []);
+  // KINDA USELESS STUFF
   const progressExample = [
     { title: 'Visits', value: '29.703 Users', percent: 40, color: 'success' },
     { title: 'Unique', value: '24.093 Users', percent: 20, color: 'info' },
@@ -242,7 +259,7 @@ const Dashboard = () => {
   }
   const series1 = new TimeSeries(data);
 
-  // MY stuff
+  // Intrusion Detection
   const [img, setImg] = useState();
   const [detectImg, setDetectImg] = useState();
 
@@ -273,6 +290,19 @@ const Dashboard = () => {
     return imageObjectURL;
   }
 
+  function setUndetectedImage(img) {
+    const imageObjectURL = makeImageUrl(img);
+    setImg(imageObjectURL);
+    setImgSpinner(false);
+    setImgDetectSpinner(true);
+  } 
+
+  function setDetectedImage(img) {
+    const detectImgURL = makeImageUrl(img);
+    setDetectImg(detectImgURL);
+    setImgDetectSpinner(false);
+  } 
+
   const takeNewImage = async () => {
 
     setImgSpinner(true);
@@ -287,9 +317,7 @@ const Dashboard = () => {
       .then(data => {
         const filename = data.filename;
 
-        const imageObjectURL = makeImageUrl(data.image);
-        setImg(imageObjectURL);
-        setImgSpinner(false);
+        setUndetectedImage(data.image);
         return filename;
       });
     
@@ -307,11 +335,25 @@ const Dashboard = () => {
     });
 
     const detectImgBlob = await detectRes.blob();
-    const detectImgURL = URL.createObjectURL(detectImgBlob);
-    setDetectImg(detectImgURL);
-    setImgDetectSpinner(false);
+    setDetectedImage(detectImgBlob);
   } 
 
+  // wait on socket for img
+  useEffect(() => {
+    socket.on('img', data => {
+      console.log(data)
+      setUndetectedImage(data.image);
+    });
+  }, []);
+
+  // wait on socket for detected img
+  useEffect(() => {
+    socket.on('detected img', data => {
+      setDetectedImage(data.image);
+    });
+  }, []);
+
+  // Sensor Displays
 
   const [ledWidgetState, setledWidgetState] = useState(0)
   const [ledWidget, setledWidget] = useSensorStatus({sensor: 'ledTime', state: ledWidgetState })
@@ -361,6 +403,7 @@ const Dashboard = () => {
 
       <div className='d-flex justify-content-center'>
         <h1>{title}</h1>
+        {message}
       </div>
     
       <WidgetsDropdown />
