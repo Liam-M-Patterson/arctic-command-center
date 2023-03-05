@@ -323,7 +323,6 @@ const Dashboard = () => {
     
 
     const detectUrl = apiUrl+'/detect/img';
-
     const detectRes = await fetch(detectUrl, {
       method: 'POST',
       mode: 'cors',
@@ -335,7 +334,9 @@ const Dashboard = () => {
     });
 
     const detectImgBlob = await detectRes.blob();
-    setDetectedImage(detectImgBlob);
+    const detectImgURL = URL.createObjectURL(detectImgBlob);
+    setDetectImg(detectImgURL);
+    setImgDetectSpinner(false);
   } 
 
   // wait on socket for img
