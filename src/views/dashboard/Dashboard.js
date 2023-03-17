@@ -89,7 +89,7 @@ const Dashboard = () => {
 
   const apiUrl = store.getState().apiUrl;
   const backendUrl = store.getState().backendUrl;
-  const GCLOUD_URL = store.getState().GCLOUD_URL;
+  // const GCLOUD_URL = store.getState().GCLOUD_URL;
   const socket = store.getState().socket;
 
   useEffect(() => {
@@ -323,6 +323,7 @@ const Dashboard = () => {
     
 
     const detectUrl = apiUrl+'/detect/img';
+    console.log("detect URL", detectUrl);
     const detectRes = await fetch(detectUrl, {
       method: 'POST',
       mode: 'cors',
@@ -333,6 +334,7 @@ const Dashboard = () => {
       body: JSON.stringify({filename: filename})
     });
 
+    console.log("detectedObj", detectRes);
     const detectImgBlob = await detectRes.blob();
     const detectImgURL = URL.createObjectURL(detectImgBlob);
     setDetectImg(detectImgURL);
