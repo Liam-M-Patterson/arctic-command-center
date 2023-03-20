@@ -22,6 +22,7 @@ import {
   CInputGroupText,
   CFormInput,
   CSpinner,
+  CFormCheck,
 } from '@coreui/react'
 import { CChartLine } from '@coreui/react-chartjs'
 import { getStyle, hexToRgba } from '@coreui/utils'
@@ -260,6 +261,31 @@ const Dashboard = () => {
   const series1 = new TimeSeries(data);
 
   // Intrusion Detection
+  const [intrusionModel, setIntrusionModel] = useState('yolov5l');
+
+  // Determine which yolo model will run on the VM
+  function changeIntrusionModel(model) {
+
+    if (model?.target?.value) {
+      model = model.target.value;
+    }
+
+    setIntrusionModel(model);
+
+    console.log("model: ", model)
+    const detectRes = fetch(apiUrl+'/set/model', {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({intrusionModel: model})
+    });
+  }
+
+
+  // Manage images
   const [img, setImg] = useState();
   const [detectImg, setDetectImg] = useState();
 
@@ -323,7 +349,7 @@ const Dashboard = () => {
     
 
     const detectUrl = apiUrl+'/detect/img';
-    console.log("detect URL", detectUrl);
+
     const detectRes = await fetch(detectUrl, {
       method: 'POST',
       mode: 'cors',
@@ -334,7 +360,6 @@ const Dashboard = () => {
       body: JSON.stringify({filename: filename})
     });
 
-    console.log("detectedObj", detectRes);
     const detectImgBlob = await detectRes.blob();
     const detectImgURL = URL.createObjectURL(detectImgBlob);
     setDetectImg(detectImgURL);
@@ -389,18 +414,6 @@ const Dashboard = () => {
     };
   };
 
-  // RADAR Vars
-  const [iAngle, setIAngle] = useState(0);
-  const [iDistance, setIDistance] = useState(0);
-  const [radarDir, setRadarDir] = useState(1);
-  setTimeout(() => {
-    if (iAngle == 180) setRadarDir(-1)
-    else if (iAngle == 0) setRadarDir(1)
-      
-    setIAngle(iAngle+radarDir);
-    // setIDistance(random(0, 180));
-  }, 100);
-
   return (
     <>
 
@@ -450,39 +463,25 @@ const Dashboard = () => {
       </CRow>
 
       <CRow className='my-2'>        
-        <CCol>
-          <div className='d-flex justify-content-center'>
+        <CCol className='d-flex justify-content-end'>
+          <div >
+            <CFormCheck type="radio" name="intrusionModel" id="intrusionModel1" label="YOLO v3" value="yolov3"  onClick={changeIntrusionModel} defaultChecked/>
+            <CFormCheck type="radio" name="intrusionModel" id="intrusionModel2" label="YOLO v5L" value="yolov5l" onClick={changeIntrusionModel}/>
+          </div>
+        </CCol>
+
+        <CCol className='d-flex justify-content-start'>
+          <div className=''>
             <CButton onClick={takeNewImage}>Capture New Image</CButton>
           </div>
-          {/* <CRow className='my-5'>
-            <CRow>
-              <CInputGroup className="mb-3">
-                <CInputGroupText id="basic-addon1">LED ON</CInputGroupText>
-                <CFormInput defaultValue={led_ON_MS} onChange={(e) => {setLED_ON_MS( e.target.value) }}/>
-                <CInputGroupText id="basic-addon1">ms</CInputGroupText>
-                <CButton onClick={() => {updateLedFreq({ms: led_ON_MS, ON: true})}}>Update</CButton>
-              </CInputGroup>
-            </CRow>
-
-            <CRow>
-              <CInputGroup className="mb-3">
-                <CInputGroupText id="basic-addon1">LED OFF</CInputGroupText>
-                <CFormInput defaultValue={led_OFF_MS} onChange={(e) => {setLED_OFF_MS( e.target.value )}}/> 
-                <CInputGroupText id="basic-addon1">ms</CInputGroupText>
-                <CButton onClick={() => {updateLedFreq({ms: led_OFF_MS, ON: false})}}>Update</CButton>
-              </CInputGroup>
-            </CRow>
-          </CRow> */}
         </CCol>
       </CRow>
       
       {/* <CRow > */}
         <div id="canvasWrapper" className='d-flex justify-content-center' 
-          // style={{maxWidth:'100%', height: 500}}
+          style={{maxWidth:'100%', height: 800}}
         >
-          <Radar  iAngle={iAngle} iDistance={iDistance}>
-
-          </Radar>  
+          <Radar /> 
         </div>
       {/* </CRow> */}
 
