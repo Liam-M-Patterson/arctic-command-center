@@ -299,10 +299,7 @@ const Dashboard = () => {
     setImg(imageObjectURL);
   };
 
-  useEffect(() => {
-    fetchImage();
-  }, []);
-
+  
   function makeImageUrl(data) {
 
     const imageData = atob(data);
@@ -382,7 +379,6 @@ const Dashboard = () => {
   }, []);
 
   // Sensor Displays
-
   const [ledWidgetState, setledWidgetState] = useState(0)
   const [ledWidget, setledWidget] = useSensorStatus({sensor: 'ledTime', state: ledWidgetState })
   // setTimeout(() => setledWidgetState(ledWidgetState+1), 10000)
@@ -400,18 +396,6 @@ const Dashboard = () => {
 
     const res = await fetch(apiUrl+'/update/led?message='+msg);
 
-  };
-
-  const sketch = (p) => {
-    p.setup = () => {
-    p.createCanvas(400, 400);
-    };
-
-    p.draw = () => {
-    p.background(255, 255, 255);
-    p.fill(0, 0, 0);
-    p.ellipse(200, 200, 100, 100);
-    };
   };
 
   return (
